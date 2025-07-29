@@ -150,12 +150,39 @@
     document.documentElement.style.setProperty('--bg-color', bg);
   }
   function login() {
-    const email = document.getElementById("log-email").value;
-    const password = document.getElementById("log-password").value;
-    if (email && password) {
-      localStorage.setItem("isLoggedIn", "true");
-      document.getElementById("app").classList.remove("hidden");
-    } else {
+  const email = document.getElementById("log-email").value;
+  const password = document.getElementById("log-password").value;
+
+  if (!email || !password) {
+    document.getElementById("log-error").innerText = "Veuillez remplir tous les champs.";
+    return;
+  }
+
+  fetch("https://messagerie-backend.onrender.com/api/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.user) {
+        localStorage.setItem("username", data.user.username);
+        localStorage.setItem("email", data.user.email);
+        localStorage.setItem("isLoggedIn", "true");
+        document.getElementById("log-error").innerText = "";
+        document.getElementById("app").classList.remove("hidden");
+        applyProfile();
+      } else {
+        document.getElementById("log-error").innerText = data.msg || "Erreur de connexion.";
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById("log-error").innerText = "Erreur serveur.";
+    });
+} else {
       document.getElementById("log-error").innerText = "Veuillez remplir tous les champs.";
     }
   }
@@ -218,6 +245,51 @@ function applyProfile() {
       span.innerText = storedUsername;
       welcome.appendChild(span);
     }
+  }
+function register() {
+  const username = document.getElementById("reg-username").value;
+  const email = document.getElementById("reg-email").value;
+  const password = document.getElementById("reg-password").value;
+
+  if (!username || !email || !password) {
+    document.getElementById("reg-error").innerText = "Veuillez remplir tous les champs.";
+    return;
+  }
+
+  fetch("https://messagerie-backend.onrender.com/api/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ username, email, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.msg && data.msg.includes("succès")) {
+        localStorage.setItem("username", username);
+        localStorage.setItem("email", email);
+        localStorage.setItem("isLoggedIn", "true");
+        document.getElementById("reg-error").innerText = "";
+        document.getElementById("app").classList.remove("hidden");
+        applyProfile();
+      } else {
+        document.getElementById("reg-error").innerText = data.msg || "Erreur d'inscription.";
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById("reg-error").innerText = "Erreur serveur.";
+    });
+}
+
+    localStorage.setItem("username", username);
+    localStorage.setItem("email", email);
+    localStorage.setItem("password", password);
+    localStorage.setItem("isLoggedIn", "true");
+
+    document.getElementById("reg-error").innerText = "";
+    document.getElementById("app").classList.remove("hidden");
+    applyProfile();
   }
 </script>
   <script>
